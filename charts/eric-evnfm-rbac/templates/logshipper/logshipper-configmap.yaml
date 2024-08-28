@@ -1,0 +1,25 @@
+#
+# COPYRIGHT Ericsson 2024
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+{{/*
+Fluent-bit ConfigMap configuration
+*/}}
+{{- if eq "true" (include "eric-evnfm-rbac.log-streaming-activated" .) }}
+{{- $hookContext := dict -}}
+{{- $_ := set $hookContext "root" . -}}
+{{- $_ := set $hookContext "customLogshipperAnnotations" (dict "helm.sh/hook" "pre-install,pre-rollback,pre-upgrade,post-delete,post-rollback,post-upgrade") -}}
+{{- include "eric-log-shipper-sidecar.logshipper-sidecar-configmap-for-hooks" $hookContext }}
+{{- end }}

@@ -1,0 +1,36 @@
+#
+# COPYRIGHT Ericsson 2024
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+{{- $authorizationProxy := fromJson (include "eric-evnfm-rbac.authz-proxy-values" .) -}}
+{{- if and $authorizationProxy.enabled .Values.ingress.enabled }}
+{{- if include "eric-evnfm-rbac.sap-cli-used" . }}
+apiVersion: iam.sec.ericsson.com/v1beta1
+kind: InternalOAuth2Identity
+metadata:
+  # The resource name below works as is.
+  # *If* it is changed, then the same change must be done in
+  # SAP container's env variable IAM_AAPXY_SAP_CLIENT_NAME
+  # (IAM_AAPXY_SAP_CLIENT_NAME has to match with name of this resource).
+  name: {{ template "eric-evnfm-rbac.authz-proxy-sap-cli-name" . }}
+  labels:
+    {{- $service := include "eric-evnfm-rbac.labels" . | fromYaml -}}
+    {{- $authzProxyLabels := include "eric-evnfm-rbac.authz-proxy-labels" . | fromYaml -}}
+    {{- include "eric-evnfm-rbac.mergeLabels" (dict "location" .Template.Name "sources" (list $service $authzProxyLabels )) | nindent 4}}
+  annotations: {{- include "eric-evnfm-rbac.annotations" . | nindent 4 }}
+spec:
+  {{ include "eric-evnfm-rbac.authz-proxy-sap-cli-spec" . | nindent 2 }}
+{{- end }}
+{{- end }}

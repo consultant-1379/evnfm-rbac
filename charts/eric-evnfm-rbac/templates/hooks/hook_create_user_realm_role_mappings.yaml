@@ -1,0 +1,139 @@
+#
+# COPYRIGHT Ericsson 2024
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+{{/*
+Job descriptor
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "eric-evnfm-rbac.name" . }}-create-user-realm-role-mappings-hook
+  labels: {{- include "eric-evnfm-rbac.labels.extended-defaults" . | nindent 4 }}
+  annotations:
+    {{- include "eric-evnfm-rbac.annotations" . | nindent 4 }}
+    "helm.sh/hook": post-install, post-upgrade, post-rollback
+    "helm.sh/hook-weight": "60"
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded
+spec:
+  activeDeadlineSeconds: {{ .Values.hooks.activeDeadlineSeconds | int }}
+  backoffLimit: {{ .Values.hooks.backoffLimit | int }}
+  template:
+    metadata:
+      labels: {{- include "eric-evnfm-rbac.labels.extended-defaults" . | nindent 8 }}
+      annotations: {{- include "eric-evnfm-rbac.annotations" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+{{- if include "eric-evnfm-rbac.keycloak-client.pullSecrets" . }}
+      imagePullSecrets:
+        - name: {{ template "eric-evnfm-rbac.keycloak-client.pullSecrets" . }}
+      {{- end }}
+      serviceAccountName: {{ template "eric-evnfm-rbac.serviceAccount.name" . }}
+      containers:
+{{- if (eq (include "eric-evnfm-rbac.log-streaming-activated" .) "true") }}
+  {{- $logshipperImageDict := dict "logshipperSidecarImage" ((((.Values).global).logShipper).config).image -}}
+  {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-container-for-hooks" (mergeOverwrite .
+      $logshipperImageDict ) | nindent 8 }}
+{{- end }}
+        - name: keycloak-client
+          image: {{ template "eric-evnfm-rbac.keycloak-client.registryUrl" . }}
+          imagePullPolicy: {{ template "eric-evnfm-rbac.imagePullPolicy" . }}
+          env:
+          - name: IAM_ADMIN_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.global.iam.adminSecret | quote }}
+                key: {{ .Values.global.iam.userKey | quote }}
+          - name: IAM_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.global.iam.adminSecret | quote }}
+                key: {{ .Values.global.iam.passwordKey | quote }}
+          - name: DEFINED_USERNAME
+            value: {{ required "A valid default username is required." .Values.defaultUser.username }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 128474
+            capabilities:
+              drop:
+                - all
+{{- if (eq (include "eric-evnfm-rbac.log.streamingMethod" .) "dual") }}
+          command: ["/opt/logging/stdout-redirect", "-redirect", "all", "-logfile", "{{ include "eric-evnfm-rbac.log-storage-path" . }}/rbac_create_configuration.log", "-run", "/keycloak_client/entrypoint.sh create user_realm_role_mappings --keycloak_hostname={{ .Values.global.hosts.iam }} --keycloak_user=$(IAM_ADMIN_USER) --keycloak_password=$(IAM_ADMIN_PASSWORD) --username=$(DEFINED_USERNAME) --config=/config/user-realm-role-mappings.json"]
+{{- else if (eq (include "eric-evnfm-rbac.log.streamingMethod" .) "direct") }}
+          command: ["/opt/logging/stdout-redirect", "-redirect", "file", "-logfile", "{{ include "eric-evnfm-rbac.log-storage-path" . }}/rbac_create_configuration.log", "-run", "/keycloak_client/entrypoint.sh create user_realm_role_mappings --keycloak_hostname={{ .Values.global.hosts.iam }} --keycloak_user=$(IAM_ADMIN_USER) --keycloak_password=$(IAM_ADMIN_PASSWORD) --username=$(DEFINED_USERNAME) --config=/config/user-realm-role-mappings.json"]
+{{- else }}
+          args:
+          - "create"
+          - "user_realm_role_mappings"
+          - "--keycloak_hostname={{ .Values.global.hosts.iam }}"
+          - "--keycloak_user=$(IAM_ADMIN_USER)"
+          - "--keycloak_password=$(IAM_ADMIN_PASSWORD)"
+          - "--username=$(DEFINED_USERNAME)"
+          - "--config=/config/user-realm-role-mappings.json"
+{{- end }}
+          volumeMounts:
+          - name: {{ template "eric-evnfm-rbac.name" . }}-create-user-realm-role-mappings-volume
+            mountPath: /config
+          - name: create-cacert-volume
+            mountPath: /mnt/certs
+{{- if (eq (include "eric-evnfm-rbac.log-streaming-activated" .) "true") }}
+  {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-mounts" . | nindent 10 }}
+{{- end }}
+          resources:
+            requests:
+            {{- if .Values.resources.keycloakClient.requests.cpu }}
+              cpu: {{ .Values.resources.keycloakClient.requests.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.keycloakClient.requests.memory }}
+              memory: {{ .Values.resources.keycloakClient.requests.memory | quote }}
+            {{- end }}
+            {{- if index .Values.resources.keycloakClient.requests "ephemeral-storage" }}
+              ephemeral-storage: {{ index .Values.resources.keycloakClient.requests "ephemeral-storage" | quote }}
+            {{- end }}
+            limits:
+            {{- if .Values.resources.keycloakClient.limits.cpu }}
+              cpu: {{ .Values.resources.keycloakClient.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.keycloakClient.limits.memory }}
+              memory: {{ .Values.resources.keycloakClient.limits.memory | quote }}
+            {{- end }}
+            {{- if index .Values.resources.keycloakClient.limits "ephemeral-storage" }}
+              ephemeral-storage: {{ index .Values.resources.keycloakClient.limits "ephemeral-storage" | quote }}
+            {{- end }}
+      {{- if or .Values.nodeSelector (and .Values.global .Values.global.nodeSelector) }}
+      nodeSelector: {{- include "eric-evnfm-rbac.nodeSelector" . | nindent 8 }}
+      {{- end }}
+      volumes:
+{{- if (eq (include "eric-evnfm-rbac.log-streaming-activated" .) "true") }}
+  {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-volumes-for-hooks" . | nindent 6 }}
+{{- end }}
+      - name: {{ template "eric-evnfm-rbac.name" . }}-create-user-realm-role-mappings-volume
+        configMap:
+          name: {{ template "eric-evnfm-rbac.name" . }}-create-user-realm-role-mappings-configmap
+          defaultMode: 0777
+      - name: create-cacert-volume
+        secret:
+          secretName: {{ .Values.global.iam.cacert.secretName }}
+          items:
+            - key: {{ .Values.global.iam.cacert.key }}
+              path: {{ .Values.global.iam.cacert.filePath }}
+      {{- if or .Values.tolerations (and .Values.global .Values.global.tolerations) }}
+      tolerations: {{ include "eric-evnfm-rbac.tolerations" . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds.rbac | int }}
+      {{- end }}

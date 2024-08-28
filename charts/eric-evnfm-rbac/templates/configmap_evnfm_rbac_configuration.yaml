@@ -1,0 +1,1604 @@
+#
+# COPYRIGHT Ericsson 2024
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "eric-evnfm-rbac.name" . }}-configmap
+  labels: {{- include "eric-evnfm-rbac.labels.extended-defaults" . | nindent 4 }}
+  annotations: {{- include "eric-evnfm-rbac.annotations" . | nindent 4 }}
+data:
+  evnfm-rbac-configuration.json: |
+    {
+      "roles": [
+        {
+          "name": "VM VNFM VIEW WFS",
+          "attributes": {},
+          "composites": {
+            "realm": [],
+            "client": {}
+          }
+        },
+        {
+          "name": "VM VNFM WFS",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "VM VNFM VIEW WFS"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "VM VNFM ADMIN",
+          "attributes": {},
+          "composites": {
+            "realm": [],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM Super User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "UserAdmin",
+              "LogViewer",
+              "MetricsViewer",
+              "EO Admin",
+              "VM VNFM WFS",
+              "VM VNFM VIEW WFS",
+              "VM VNFM ADMIN",
+              "GAS_User",
+              "System_Security_CertMAdmin",
+              "Batch Manager Super User Role"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM Onboarding User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "VM VNFM WFS",
+              "VM VNFM VIEW WFS",
+              "GAS_User"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "VM VNFM WFS",
+              "VM VNFM VIEW WFS",
+              "GAS_User",
+              "Batch Manager Operator Role"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM Read-only User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "VM VNFM VIEW WFS",
+              "GAS_User"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM UI User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+            "GAS_User"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM ADP CI Flow Role",
+          "attributes": {
+            "type": [
+              "Internal"
+            ]
+          },
+          "composites": {
+            "realm": [],
+            "client": {}
+          }
+        },
+        {
+          "name": "E-VNFM Cluster Config Reader",
+          "attributes": {},
+          "composites": {
+            "realm": [],
+            "client": {}
+          }
+        },
+        {
+          "name": "Batch Manager Super User Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "Batch Manager Operator Role",
+              "Batch Manager Trusted Viewer Role"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "Batch Manager Operator Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "Batch Manager Viewer Role"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "Batch Manager Trusted Viewer Role",
+          "attributes": {},
+          "composites": {
+            "realm": [
+              "Batch Manager Viewer Role"
+            ],
+            "client": {}
+          }
+        },
+        {
+          "name": "Batch Manager Viewer Role",
+          "attributes": {},
+          "composites": {
+            "realm": [],
+            "client": {}
+          }
+        }
+        {{- if index .Values "eric-eo-evnfm-drac" "enabled" -}}
+        {{- if index .Values "eric-eo-evnfm-drac" "domainRoles" -}}
+        ,
+        {{- include "eric-evnfm-rbac.drac.domainRoles" . | nindent 4 }}
+        {{- end -}}
+        {{- end -}}
+      ],
+      "authorization": {
+        "resources": [
+          {
+            "name": "E-VNFM Private Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/vnfpkgm/v1/vnf_packages/*/update_usage_state",
+              "/api/internal/*/pods",
+              "/api/lcm/v2/resources",
+              "/api/lcm/v2/resources/**"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Package Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/vnfpkgm/v1/vnf_packages/*",
+              "/vnfm/onboarding/api/vnfpkgm/v1/vnf_packages/*/vnfd",
+              "/vnfm/onboarding/api/v1/packages/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Packages Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/vnfpkgm/v1/vnf_packages",
+              "/vnfm/onboarding/api/v1/packages"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Package Information Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/v1/packages/*/status",
+              "/vnfm/onboarding/api/v1/packages/filter/autocomplete"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Package Onboarding Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/vnfpkgm/v1/vnf_packages/*/package_content"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resources Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Information Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/resources",
+              "/vnflcm/v1/resources/*",
+              "/vnflcm/v1/resources/*/pods",
+              "/vnflcm/v1/resources/*/vnfcScaleInfo"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Upgrade Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/change_package_info",
+              "/vnflcm/*/vnf_instances/*/change_vnfpkg"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource DowngradeInfo Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/*/resources/*/downgradeInfo"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Update Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/update"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Instantiation Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/instantiate"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Resource Termination Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/terminate",
+              "/vnflcm/v1/resources/*/cleanup"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Operation History Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/operations",
+              "/vnflcm/api/v1/instance/filter/autocomplete",
+              "/vnflcm/v1/vnf_lcm_op_occs",
+              "/vnflcm/v1/vnf_lcm_op_occs/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Manual Fail Operation",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_lcm_op_occs/*/fail"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Manual Rollback Operation",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_lcm_op_occs/*/rollback"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Syncronize Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/sync"
+            ],
+            "scopes": [
+              {
+               "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+               "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Charts Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/v1/charts",
+              "/vnfm/onboarding/api/v1/charts/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Images Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/v1/images",
+              "/vnfm/onboarding/api/v1/images/*",
+              "/vnfm/onboarding/api/v1/images/*/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Cluster Configuration Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/wfs/api/lcm/v2/cluster",
+              "/vnflcm/*/clusterconfigs",
+              "/vnflcm/*/clusterconfigs/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Internal Package Onboarding Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnfm/onboarding/api/v1/internal/packages"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM ENM Node Integration Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/addNode"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM ENM Node Deletion Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/deleteNode"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Manual Scale Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/scale"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Manual Heal Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/*/vnf_instances/*/heal"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Manual Operate Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/vnf_instances/*/operate"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Backup Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/*/vnf_instances/*/backups",
+              "/vnflcm/*/vnf_instances/*/backups/**"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Backup Scopes Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/*/vnf_instances/*/scopes"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Onboarded VNF Packages Information Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/*/vnf_packages"
+            ],
+            "scopes": [
+              {
+                "name": "GET"
+              }
+            ]
+          },
+          {
+            "name": "E-VNFM Cluster Config Data Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/vnflcm/v1/cism-cluster-data"
+            ],
+            "scopes": [
+              {
+                "name": "GET"
+              }
+            ]
+          },
+          {
+            "name": "Batch Manager Requests Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/batch-manager/lcm/v1/requests"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "Batch Manager Modify Request Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/batch-manager/lcm/v1/requests/*/execution/*",
+              "/batch-manager/lcm/v1/requests/*/item/*/execution/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          },
+          {
+            "name": "Batch Manager View Request Resource",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/batch-manager/lcm/v1/requests/*"
+            ],
+            "scopes": [
+              {
+                "name": "PATCH"
+              },
+              {
+                "name": "DELETE"
+              },
+              {
+                "name": "GET"
+              },
+              {
+                "name": "POST"
+              },
+              {
+                "name": "PUT"
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "name": "Is E-VNFM Super User Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM Super User Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is E-VNFM Onboarding User Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM Onboarding User Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is E-VNFM User Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM User Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is E-VNFM Read-only User Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM Read-only User Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is E-VNFM ADP CI Flow Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM ADP CI Flow Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is E-VNFM Cluster Config Reader Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"E-VNFM Cluster Config Reader\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "E-VNFM View Package Permission 1",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Package Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Package Permission 2",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Packages Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Package Permission 3",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Package Information Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Delete Package Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Package Resource\"]",
+              "scopes": "[\"DELETE\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Onboard Package POST Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Packages Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Onboard Package PUT Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Package Onboarding Resource\"]",
+              "scopes": "[\"PUT\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM Onboarding User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Resource Permission 1",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Resource Permission 2",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resources Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Resource Permission 3",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Operation History Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Resource Permission 4",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Information Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Resource PATCH Permissions",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Operation History Resource\"]",
+              "scopes": "[\"PATCH\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Instantiate Resource Permission 1",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resources Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Instantiate Resource Permission 2",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Instantiation Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Terminate Resource DELETE Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Resource\"]",
+              "scopes": "[\"DELETE\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Terminate Resource POST Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Termination Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Modify Resource PATCH Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Resource\"]",
+              "scopes": "[\"PATCH\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Upgrade Resource Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Upgrade Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM DowngradeInfo Resource Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource DowngradeInfo Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Update Resource Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Resource Update Resource\"]",
+              "scopes": "[\"PATCH\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Chart Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Charts Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Image Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Images Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM VIM Registration Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Configuration Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\"]"
+          }
+          },
+          {
+            "name": "E-VNFM VIM Registration GET Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Configuration Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM VIM Registration DELETE Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Configuration Resource\"]",
+              "scopes": "[\"DELETE\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM VIM Registration PUT Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Configuration Resource\"]",
+              "scopes": "[\"PUT\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM VIM Registration PATCH Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Configuration Resource\"]",
+              "scopes": "[\"PATCH\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Internal Onboard Package Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Internal Package Onboarding Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM ADP CI Flow Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM ENM Node Integration Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM ENM Node Integration Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM ENM Node Deletion Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM ENM Node Deletion Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Manual Scale Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Manual Scale Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Manual Heal Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Manual Heal Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Manual Operate Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Manual Operate Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Manual Rollback Operation Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Manual Rollback Operation\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Manual Fail Operation Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Manual Fail Operation\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM Syncronization Resource Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Syncronize Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+            }
+          },
+           {
+             "name": "E-VNFM Create Backup Permission",
+             "type": "scope",
+             "logic": "POSITIVE",
+             "decisionStrategy": "AFFIRMATIVE",
+             "config": {
+               "resources": "[\"E-VNFM Backup Resource\"]",
+               "scopes": "[\"POST\"]",
+               "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+             }
+           },
+           {
+             "name": "E-VNFM Get Backups Permission",
+             "type": "scope",
+             "logic": "POSITIVE",
+             "decisionStrategy": "AFFIRMATIVE",
+             "config": {
+               "resources": "[\"E-VNFM Backup Resource\"]",
+               "scopes": "[\"GET\"]",
+               "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+             }
+           },
+           {
+             "name": "E-VNFM Delete Backup Permission",
+             "type": "scope",
+             "logic": "POSITIVE",
+             "decisionStrategy": "AFFIRMATIVE",
+             "config": {
+               "resources": "[\"E-VNFM Backup Resource\"]",
+               "scopes": "[\"DELETE\"]",
+               "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\"]"
+             }
+           },
+           {
+             "name": "E-VNFM GET Backup Scopes Permission",
+             "type": "scope",
+             "logic": "POSITIVE",
+             "decisionStrategy": "AFFIRMATIVE",
+             "config": {
+               "resources": "[\"E-VNFM Backup Scopes Resource\"]",
+               "scopes": "[\"GET\"]",
+               "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+             }
+           },
+           {
+            "name": "E-VNFM View Packages Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Onboarded VNF Packages Information Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Super User Role Policy\",\"Is E-VNFM User Role Policy\",\"Is E-VNFM Read-only User Role Policy\"]"
+            }
+          },
+          {
+            "name": "E-VNFM View Cluster Config Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"E-VNFM Cluster Config Data Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is E-VNFM Cluster Config Reader Policy\"]"
+            }
+          },
+          {
+            "name": "Is Batch Manager Super User Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"Batch Manager Super User Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is Batch Manager Viewer Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"Batch Manager Viewer Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is Batch Manager Operator Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"Batch Manager Operator Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Is Batch Manager Trusted Viewer Role Policy",
+            "type": "role",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "roles": "[{\"id\":\"Batch Manager Trusted Viewer Role\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "Batch Manager Create Request Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"Batch Manager Requests Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is Batch Manager Super User Role Policy\",\"Is Batch Manager Operator Role Policy\"]"
+            }
+          },
+          {
+            "name": "Batch Manager Modify Request Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"Batch Manager Modify Request Resource\"]",
+              "scopes": "[\"POST\"]",
+              "applyPolicies": "[\"Is Batch Manager Super User Role Policy\",\"Is Batch Manager Operator Role Policy\"]"
+            }
+          },
+          {
+            "name": "Batch Manager Get Request Permission",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"Batch Manager Requests Resource\",\"Batch Manager View Request Resource\"]",
+              "scopes": "[\"GET\"]",
+              "applyPolicies": "[\"Is Batch Manager Super User Role Policy\",\"Is Batch Manager Viewer Role Policy\",\"Is Batch Manager Operator Role Policy\",\"Is Batch Manager Trusted Viewer Role Policy\"]"
+            }
+          }
+        ],
+        "scopes": [
+          {
+            "name": "GET"
+          },
+          {
+            "name": "POST"
+          },
+          {
+            "name": "DELETE"
+          },
+          {
+            "name": "PUT"
+          },
+          {
+            "name": "PATCH"
+          }
+        ]
+      }
+    }

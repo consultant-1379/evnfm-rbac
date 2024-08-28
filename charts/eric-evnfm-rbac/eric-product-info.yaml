@@ -1,0 +1,41 @@
+#
+# COPYRIGHT Ericsson 2024
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+productName: "EVNFM RBAC"
+# Currently NBI CXD product number specified as there is no separate product number for RBAC chart
+productNumber: "CXD 101 0735"
+images:
+  keycloakClient:
+    productName: "User Administration"
+    productNumber: "CXU 101 0682"
+    registry: "armdocker.rnd.ericsson.se"
+    repoPath: "proj-orchestration-so"
+    name: "keycloak-client"
+    tag: "1.5.0-1"
+  ericsecoauthsap:
+    productName: "Authorization Proxy OAuth2 Init Image"
+    productNumber: "CXU 101 0039"
+    registry: "armdocker.rnd.ericsson.se"
+    repoPath: "proj-common-assets-cd/security"
+    name: "eric-sec-authorization-proxy-oauth2-sap"
+    tag: "2.2.0-14"
+  ericsecoauthproxy:
+    productName: "Authorization Proxy OAuth2 Image"
+    productNumber: "CXU 101 0038"
+    registry: "armdocker.rnd.ericsson.se"
+    repoPath: "proj-common-assets-cd/security"
+    name: "eric-sec-authorization-proxy-oauth2"
+    tag: "2.2.0-14"

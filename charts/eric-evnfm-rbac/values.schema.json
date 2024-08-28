@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "default": {},
+  "title": "Root Schema",
+  "required": [
+    "resources"
+  ],
+  "properties": {
+    "keycloakClient": {
+      "type": "object",
+      "default": {},
+      "title": "The keycloakClient Schema",
+      "required": [
+        "requests"
+      ],
+      "properties": {
+        "requests": {
+          "type": "object",
+              "default": {},
+              "title": "The requests Schema",
+              "required": [
+                "memory"
+              ],
+              "properties": {
+                "memory": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The memory Schema"
+                }
+              }
+            }
+          }
+        },
+    "resources": {
+      "type": "object",
+      "default": {},
+      "title": "The resources Schema",
+      "required": [
+      ],
+      "properties": {
+      }
+    }
+  }
+}
